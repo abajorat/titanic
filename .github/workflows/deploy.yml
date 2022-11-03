@@ -1,0 +1,30 @@
+name: Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  flake8:
+    uses: ./.github/workflows/flake8.yml
+
+  deployment:
+    name: Start server
+    needs: flake8
+    runs-on: ubuntu-latest
+    environment: ${{github.ref_name}}
+    steps:
+    - name: executing ssh commands using ssh key
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.AWS_HOST}}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_KEY }}
+        script: |
+          cd titanic
+          sudo docker-compose down
+          cd ..
+          sudo rm -rf titanic
+          git clone -b ${{github.ref_name}} https://github.com/abajorat93/titanic.git
+          cd titanic
+          sudo docker-compose up -d --remove-orphans

@@ -1,0 +1,18 @@
+version: "3"
+services:
+  train:
+    image: abajorat/train:v1
+    build: train/.
+    volumes:
+      - ./models:/app/models
+    command: python -m src.train_model LogisticRegression
+
+  serve:
+    build: serve/.
+    image: abajorat/serve:v1
+    ports:
+      - 5002:5002
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs/
+    command: uvicorn src.predict:app --host 0.0.0.0 --port 5002

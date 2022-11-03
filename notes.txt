@@ -1,0 +1,62 @@
+    image: abajorat/train_rf:v1
+    build: train/.
+    volumes:
+      - ./models/rf:/app/models
+    command: python -m src.train_model RandomForest
+
+  train_lr:
+    image: abajorat/lr_training:v1
+    build: train/.
+    volumes:
+      - ./models/lr:/app/models
+    command: python -m src.train_model LogisticRegression
+
+  serve_rf:
+    build: serve/.
+    image: abajorat/serve_rf:v1
+    depends_on:
+      train_rf:
+        condition: service_completed_successfully
+    ports:
+      - 8001:5001
+    volumes:
+      - ./models/rf:/app/models
+      - ./logs/rf:/app/logs/
+    command: uvicorn src.predict:app --host 0.0.0.0 --port 5001
+
+
+
+  name: CI
+
+on:
+  push:
+    branches: [staging, production]
+  pull_request:
+    branches:[staging, production]
+  workflow_dispatch:
+
+jobs:
+  flake8:
+    uses: ./.github/workflows/flake8.yml
+  deployment:
+    name: Start server
+    needs: flake8
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name}}
+    steps:
+      - name: deploy docker to docker hub
+        run: docker login 
+      - name: executing ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST}}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            cd titanic
+            sudo docker-compose down
+            cd ..
+            sudo rm -rf titanic
+            git clone -b ${{github.ref_name}} https://github.com/abajorat93/titanic.git
+            cd titanic 
+            sudo docker-compose up -d --remove-orphans
