@@ -1,17 +1,23 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.16"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
-
 provider "aws" {
   region = "us-east-1"
 }
+
+terraform {
+  backend "s3" { # Define a remote bucket (AWS S3)
+    bucket = "tec-terraform-backend-aws" # Set your bucket's name
+    key    = "titanic_model"         # Set the bucket key
+    region = "us-east-1"     # Set the region where the bucket exists
+  }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.37"
+    }
+  }
+
+  required_version = ">= 1.3.4"
+}
+
 
 # resource "aws_instance" "app_server" {
 #   ami           = "05183526bce570b80"
