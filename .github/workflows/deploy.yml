@@ -46,6 +46,9 @@ jobs:
         run: |-
           echo "instance_public_ip=$(terraform output --raw instance_public_ip)" >> $GITHUB_OUTPUT
         working-directory: terraform
+      - name: Sleep for 30 seconds to wait for init script
+        run: sleep 30s
+        shell: bash
   deployModel:
     name: Clone Model Repo and start server to serve model
     needs: deployTerraform

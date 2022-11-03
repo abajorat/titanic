@@ -4,7 +4,9 @@ services:
     image: abajorat/train:v1
     build: train/.
     volumes:
-      - s3://tec-titanic/models:/app/models
+      - ./models:/app/models
+      # - s3://tec-titanic/models:/app/models
+
     command: python -m src.train_model LogisticRegression
 
   serve:
