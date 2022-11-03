@@ -44,7 +44,7 @@ jobs:
       - name: Set output
         id: set-ip
         run: |-
-          echo "::set-output name=instance_public_ip::44.203.253.63"
+          echo "::set-output name=instance_public_ip::${terraform output --raw instance_public_ip}
         working-directory: terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
@@ -52,8 +52,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set IP env variable
-        run: echo SERVER_PUBLIC_IP=${{ needs.deployTerraform.outputs.SERVER_PUBLIC_IP }} >> $GITHUB_ENV
       - name: executing ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
