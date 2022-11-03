@@ -44,7 +44,7 @@ jobs:
       - name: Set output
         id: set-ip
         run: |-
-          echo "::set-output name=instance_public_ip::$(terraform output --raw instance_public_ip)"
+          echo "::set-output name=instance_public_ip::44.203.253.63"
         working-directory: terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
