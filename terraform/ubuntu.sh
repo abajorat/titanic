@@ -17,4 +17,4 @@ sudo apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 
 ##CREATE TEST DIR
 cd home/ubuntu
-mkdir titanic
+sudo mkdir titanic
