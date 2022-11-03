@@ -6,7 +6,14 @@ on:
 
 jobs:
   flake8:
-    uses: ./.github/templates/.flake8.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4 # Necessary to access local action
+      - name: Local Action Call
+        id: local-action
+        uses: ./.github/actions/flake8
+        with:
+          name: "Flake8"
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
     needs: flake8
@@ -21,6 +28,8 @@ jobs:
       - name: Terraform init
         id: init
         run: |
+          ls 
+          cd titanic
           terraform init
           terraform validate
           terraform plan 
