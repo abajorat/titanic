@@ -64,7 +64,6 @@ jobs:
                 sleep 5
             done
             echo "File found"
-            exit
             cd titanic
             sudo docker compose down
             cd ..
