@@ -14,6 +14,7 @@ jobs:
         uses: ./.github/actions/flake8
         with:
           name: "Flake8"
+
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
     needs: flake8
