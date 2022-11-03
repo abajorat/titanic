@@ -60,7 +60,7 @@ resource "aws_instance" "serve_model" {
   key_name                    = "terraform_andre"
   user_data = file("ubuntu.sh")
 }
-output "ec2_global_ip" {
+output "instance_public_ip" {
   value = "${aws_instance.serve_model.public_ip}"
 }
 
