@@ -6,7 +6,7 @@ on:
 
 jobs:
   flake8:
-    uses: ./.github/workflows/flake8.yml
+    uses: ./.github/workflows/.flake8.yml
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
     needs: flake8
@@ -15,7 +15,7 @@ jobs:
       SERVER_PUBLIC_IP: ${{ steps.set-ip.outputs.instance_public_ip}}
     steps:
       - name: setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v2
       - name: Terraform init
         id: init
         run: terraform init
