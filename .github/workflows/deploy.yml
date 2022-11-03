@@ -33,12 +33,12 @@ jobs:
           terraform validate
           terraform plan 
           terraform apply -auto-approve
-        working-directory: .
+        working-directory: ./terraform
       - name: Set output
         id: set-ip
         run: |-
           echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
-        working-directory: .
+        working-directory: ./terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
     needs: deployTerraform
