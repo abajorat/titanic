@@ -29,17 +29,16 @@ jobs:
       - name: Terraform init
         id: init
         run: |
-          echo $(ls)
           terraform init
           terraform validate
           terraform plan 
           terraform apply -auto-approve
-        working-directory: terraform
+        working-directory: ../terraform
       - name: Set output
         id: set-ip
         run: |-
           echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
-        working-directory: terraform
+        working-directory: ../terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
     needs: deployTerraform
