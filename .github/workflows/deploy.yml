@@ -6,7 +6,7 @@ on:
 
 jobs:
   flake8:
-    uses: ./.github/workflows/.flake8.yml
+    uses: ./.github/workflows/templates/.flake8.yml
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
     needs: flake8
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
       - name: Terraform init
         id: init
         run: terraform init
