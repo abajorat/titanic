@@ -44,7 +44,7 @@ jobs:
       - name: Set output
         id: set-ip
         run: |-
-          echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
+          echo "::set-output name=instance_public_ip::$(terraform output --raw instance_public_ip)"
         working-directory: terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
@@ -57,7 +57,7 @@ jobs:
       - name: executing ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
-          host: 44.203.253.63
+          host: ${{env.SERVER_PUBLIC_IP}}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
