@@ -22,6 +22,7 @@ jobs:
     outputs:
       SERVER_PUBLIC_IP: ${{ steps.set-ip.outputs.instance_public_ip}}
     steps:
+      - uses: actions/checkout@v3
       - name: setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -33,17 +34,18 @@ jobs:
           terraform validate
           terraform plan 
           terraform apply -auto-approve
-        working-directory: ../terraform
+        working-directory: terraform
       - name: Set output
         id: set-ip
         run: |-
           echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
-        working-directory: ../terraform
+        working-directory: terraform
   deployModel:
     name: Clone Model Repo and start server to serve model
     needs: deployTerraform
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Set IP env variable
         run: echo SERVER_PUBLIC_IP=${{ needs.deploy-infra.outputs.SERVER_PUBLIC_IP }} >> $GITHUB_ENV
       - name: executing ssh commands using ssh key
