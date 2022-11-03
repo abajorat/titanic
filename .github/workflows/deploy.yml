@@ -29,6 +29,7 @@ jobs:
       - name: Terraform init
         id: init
         run: |
+          echo $(ls)
           terraform init
           terraform validate
           terraform plan 
