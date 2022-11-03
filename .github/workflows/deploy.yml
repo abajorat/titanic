@@ -8,23 +8,51 @@ jobs:
   flake8:
     uses: ./.github/workflows/flake8.yml
 
-  deployment:
-    name: Start server
+
+  deployTerraform:
+    name: Deploy AWS Infrastructure via Terraform
     needs: flake8
     runs-on: ubuntu-latest
     environment: ${{github.ref_name}}
+    outputs:
+      SERVER_PUBLIC_IP: ${{ steps.set-ip.outputs.instance_public_ip}}
     steps:
-    - name: executing ssh commands using ssh key
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.AWS_HOST}}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SERVER_KEY }}
-        script: |
-          cd titanic
-          sudo docker-compose down
-          cd ..
-          sudo rm -rf titanic
-          git clone -b ${{github.ref_name}} https://github.com/abajorat93/titanic.git
-          cd titanic
-          sudo docker-compose up -d --remove-orphans
+      - name: Terraform init
+        id: init
+        run: terraform init
+        working-directory: ./terraform
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -out=PLAN
+        working-directory: ./terraform
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply PLAN
+        working-directory: ./terraform
+      - name: Set output
+        id: set-ip
+        run: |-
+          echo "::set-output name=instance_public_ip::$(terraform output instance_public_ip)"
+        working-directory: ./terraform
+  deployModel:
+    name: Clone Model Repo and start server to serve model
+    needs: deployTerraform
+    runs-on: ubuntu-latest
+    environment: ${{github.ref_name}}
+    steps:
+      - name: Set IP env variable
+        run: echo SERVER_PUBLIC_IP=${{ needs.deploy-infra.outputs.SERVER_PUBLIC_IP }} >> $GITHUB_ENV
+      - name: executing ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{env.SERVER_PUBLIC_IP}}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            cd titanic
+            sudo docker-compose down
+            cd ..
+            sudo rm -rf titanic
+            git clone -b ${{github.ref_name}} https://github.com/abajorat/titanic.git
+            cd titanic
+            sudo docker compose --build up -d --remove-orphans serve
