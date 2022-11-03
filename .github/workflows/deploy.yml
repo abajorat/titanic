@@ -62,7 +62,7 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             cd titanic
-            sudo docker-compose down
+            sudo docker compose down
             cd ..
             sudo rm -rf titanic
             git clone -b ${{github.ref_name}} https://github.com/abajorat/titanic.git
