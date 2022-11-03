@@ -16,7 +16,7 @@ jobs:
   #         name: "World"
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
-    needs: flake8
+    # needs: flake8
     runs-on: ubuntu-latest
     outputs:
       SERVER_PUBLIC_IP: ${{ steps.set-ip.outputs.instance_public_ip}}
