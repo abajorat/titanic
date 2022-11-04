@@ -18,15 +18,6 @@ terraform {
   required_version = ">= 1.3.4"
 }
 
-
-# resource "aws_instance" "app_server" {
-#   ami           = "05183526bce570b80"
-#   instance_type = "t2.micro"
-
-#   tags = {
-#     Name = "ExampleAppServerInstance"
-#   }
-# }
 resource "aws_security_group" "sg" {
   description = "Security Group for model serving instance"
   ingress {
