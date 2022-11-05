@@ -41,7 +41,6 @@ class PredictionInput(BaseModel):
 
 class PredictionOutput(BaseModel):
     prediction: int
-    model: str
 
 
 class TitanicModel:
@@ -50,7 +49,7 @@ class TitanicModel:
     def load_model(self):
         """Loads the model"""
         self.prod_model = joblib.load(config.MODEL_NAME)
-        self.name = self.prod_model.get_params()['steps'][1][0]
+        self.name = self.prod_model.get_params()["steps"][1][0]
         logger.info(f" {self.name} Model loaded")
 
     def predict(self, input: PredictionInput) -> PredictionOutput:
@@ -60,8 +59,11 @@ class TitanicModel:
         if not self.prod_model:
             raise RuntimeError("Model is not loaded")
         prediction = self.prod_model.predict(df)[0]
-        results = {"input_raw": input.dict(), "prediction": str(prediction),
-                   "model": self.name}
+        results = {
+            "input_raw": input.dict(),
+            "prediction": str(prediction),
+            "model": self.name,
+        }
         logger.info(f"Prediction:{json.dumps(results)}")
         return PredictionOutput(prediction=prediction, model=self.name)
 
