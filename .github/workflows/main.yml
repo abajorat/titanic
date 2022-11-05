@@ -34,8 +34,8 @@ jobs:
         run: |
           terraform init
           terraform validate
-          terraform plan --out PLAN
-          terraform apply PLAN -auto-approve
+          terraform plan
+          terraform apply -auto-approve
         working-directory: terraform
       - name: Set output
         id: set-ip
