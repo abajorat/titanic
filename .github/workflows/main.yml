@@ -5,12 +5,40 @@ on:
     branches: [start]
 
 jobs:
-  flake8:
+  # flake8:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2.3.4
+  #     - name: Local Action Call
+  #       id: local-action
+  #       uses: ./.github/actions/flake8
+  #       with:
+  #         name: "Flake8"
+  deployTerraform:
+    name: Deploy AWS Infrastructure via Terraform
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
-      - name: Local Action Call
-        id: local-action
-        uses: ./.github/actions/flake8
+      - uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          name: "Flake8"
+          aws-access-key-id: '${{ secrets.AWS_ACCESS_KEY_ID }}'
+          aws-secret-access-key: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
+          aws-region: us-east-1
+      - name: setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - name: Terraform init
+        id: init
+        run: |
+          terraform init
+          terraform validate
+          terraform plan --out PLAN
+          terraform apply PLAN -auto-approve
+        working-directory: terraform
+      - name: Set output
+        id: set-ip
+        run: |-
+          echo "instance_public_ip=$(terraform output --raw instance_public_ip)" >> $GITHUB_OUTPUT
+        working-directory: terraform
