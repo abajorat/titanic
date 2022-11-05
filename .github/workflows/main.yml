@@ -17,6 +17,8 @@ jobs:
   deployTerraform:
     name: Deploy AWS Infrastructure via Terraform
     runs-on: ubuntu-latest
+    outputs:
+      SERVER_PUBLIC_IP: ${{ steps.set-ip.outputs.instance_public_ip}}
     steps:
       - uses: actions/checkout@v3
       - name: Configure AWS credentials
@@ -42,3 +44,30 @@ jobs:
         run: |-
           echo "instance_public_ip=$(terraform output --raw instance_public_ip)" >> $GITHUB_OUTPUT
         working-directory: terraform
+  deployModel:
+    name: Clone Model Repo and start server to serve model
+    needs: deployTerraform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: executing ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ needs.deployTerraform.outputs.SERVER_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            until [ -d titanic ]
+            do
+                sleep 5
+            done
+            echo "File found"
+            cd titanic
+            sudo docker compose down
+            cd .. 
+            sudo rm -rf titanic
+            git clone -b ${{github.ref_name}} https://github.com/abajorat/titanic.git
+            cd titanic
+            sudo docker compose up --build  -d --remove-orphans serve
+
+
