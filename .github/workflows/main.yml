@@ -68,6 +68,5 @@ jobs:
             sudo rm -rf titanic
             git clone -b ${{github.ref_name}} https://github.com/abajorat/titanic.git
             cd titanic
-            sudo docker compose up --build  -d --remove-orphans serve
-
+            sudo docker compose up --build  -d --remove-orphans
 

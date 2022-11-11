@@ -1,19 +1,83 @@
 version: "3"
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks:
+  front-tier:
+  back-tier:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
 services:
   train:
-    image: abajorat/train:v1
+    image: abajorat/train
     build: train/.
     volumes:
       - ./models:/app/models
+      - ./data:/app/data
 
-    command: python -m src.train_model LogisticRegression
+    command: python -m src.train_model RandomForest
 
   serve:
     build: serve/.
-    image: abajorat/serve:v1
+    depends_on: 
+      train:
+        condition: service_completed_successfully
+    image: abajorat/serve
     ports:
       - 5002:5002
     volumes:
       - ./models:/app/models
       - ./logs:/app/logs/
+    networks:
+      - back-tier
     command: uvicorn src.predict:app --host 0.0.0.0 --port 5002
+
+
+  evidently_service:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile
+    depends_on:
+      - grafana
+    volumes:
+      - ./data:/app/datasets
+    ports:
+      - "8085:8085"
+    networks:
+      back-tier:
+        ipv4_address: 172.20.0.10
+      front-tier:
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - back-tier
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    user: "472"
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/config/grafana_datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./monitoring/config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./monitoring/dashboards:/opt/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    networks:
+      - back-tier
+      - front-tier
+    restart: always

@@ -1,0 +1,26 @@
+dataset:
+  name: 'Wine'
+  column_mapping:
+    numerical_features:
+      - fixed_acidity
+      - volatile_acidity
+      - citric_acid
+      - residual_sugar
+      - chlorides
+      - free_sulfur_dioxide
+      - total_sulfur_dioxide
+      - density
+      - pH
+      - sulphates
+      - alcohol
+    prediction: reg_prediction
+  data_format:
+    header: true
+    separator: ','
+  monitors:
+    - data_drift
+    - num_target_drift
+service:
+  calculation_period_sec: 2
+  datasets_path: datasets
+  window_size: 10

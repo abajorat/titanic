@@ -1,90 +1,69 @@
 import joblib
-from transformers.transformers import (
-    MissingIndicator,
-    CabinOnlyLetter,
-    CategoricalImputerEncoder,
-    NumericalImputesEncoder,
-    RareLabelCategoricalEncoder,
-    OneHotEncoder,
-    MinMaxScaler,
-    CleaningTransformer,
-    DropTransformer,
-)
 import pandas as pd
 
 from . import config
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 from sklearn.model_selection import train_test_split
-
+from sklearn.metrics import mean_squared_error, f1_score
 import sys
 
 
-def train(model_name: str):
-    numeric_transformer = Pipeline(
-        steps=[
-            ("missing_indicator", MissingIndicator(config.NUMERICAL_VARS)),
-            ("median_imputation", NumericalImputesEncoder(config.NUMERICAL_VARS)),
-        ]
-    )
-    categorical_transformer = Pipeline(
-        steps=[
-            ("cabin_only_letter", CabinOnlyLetter("cabin")),
-            ("categorical_imputer", CategoricalImputerEncoder(config.CATEGORICAL_VARS)),
-            (
-                "rare_labels",
-                RareLabelCategoricalEncoder(
-                    tol=0.02, variables=config.CATEGORICAL_VARS
-                ),
-            ),
-            ("one_hot", OneHotEncoder(config.CATEGORICAL_VARS)),
-        ]
-    )
+def train():
 
-    preprocessor = Pipeline(
-        [
-            ("cleaning", CleaningTransformer()),
-            ("categorical", categorical_transformer),
-            ("numeric", numeric_transformer),
-            ("dropper", DropTransformer(config.DROP_COLS)),
-            ("scaling", MinMaxScaler()),
-        ]
-    )
-    if model_name == 'RandomForest':
-        regressor = RandomForestClassifier(
-            max_depth=4, class_weight="balanced",
-            random_state=config.SEED_MODEL
-        )
-    else:
-        regressor = LogisticRegression(
-            C=0.0005, class_weight="balanced",
-            random_state=config.SEED_MODEL
-        )
-
-    titanic_pipeline = Pipeline(
-        [("preprocessor", preprocessor), (f"{model_name}_regressor", regressor)]
-    )
-    df = pd.read_csv(config.URL).drop(columns="home.dest")
-    X_train, X_test, y_train, y_test = train_test_split(
-        df.drop(config.TARGET, axis=1),
-        df[config.TARGET],
+    regressor = RandomForestRegressor()
+    classifier = RandomForestClassifier()
+    df = pd.read_csv(config.URL, delimiter=';')
+    df.columns = [x.replace(" ", "_") for x in df.columns]
+    features = list(df.columns)
+    print(features)
+    features.remove(config.TARGET)
+    print(features)
+    train, prod = train_test_split(
+        df,
         test_size=0.2,
         random_state=config.SEED_SPLIT,
     )
-    titanic_pipeline.fit(X_train, y_train)
-    preds = titanic_pipeline.predict(X_test)
-    accuracy = (preds == y_test).sum() / len(y_test)
-    print(f"Accuracy of the model is {accuracy}")
+    train, test = train_test_split(
+        train,
+        test_size=0.1,
+        random_state=config.SEED_SPLIT,
+    )
 
-    # now = datetime.now()
-    # date_time = now.strftime("%Y_%d_%m_%H%M%S")
-    filename = f"{config.MODEL_NAME}"
-    print(f"Model stored in models as {filename}")
-    joblib.dump(titanic_pipeline, f"{config.MODEL_NAME}")
+    regressor.fit(train[features], train[config.TARGET])
+    classifier.fit(train[features], train[config.TARGET])
+
+    preds = regressor.predict(test[features])
+    mse = mean_squared_error(test[config.TARGET], preds)
+    print(f"MSE of the regression model is {mse}")
+
+    preds = classifier.predict(test[features])
+    mse = f1_score(test[config.TARGET], preds, average='weighted')
+    print(f"F1 of the classification model is {mse}")
+
+    filename = f"{config.REG_MODEL_NAME}"
+    print(f"Regression Model stored in models as {filename}")
+    joblib.dump(regressor, filename)
+
+    filename = f"{config.REG_MODEL_NAME}"
+    print(f"ClassificationModel stored in models as {filename}")
+    joblib.dump(classifier, filename)
+
+    train['reg_prediction'] = regressor.predict(train[features])
+    prod['reg_prediction'] = regressor.predict(prod[features])
+    test['reg_prediction'] = regressor.predict(test[features])
+
+    train['class_prediction'] = classifier.predict(train[features])
+    prod['class_prediction'] = classifier.predict(prod[features])
+    test['class_prediction'] = classifier.predict(test[features])
+
+    train.to_csv(config.DATA_DIR + "/train.csv", index=False)
+    prod.to_csv(config.DATA_DIR + "/prod.csv", index=False )
+    test.to_csv(config.DATA_DIR + "/test.csv", index=False )
+
 
 
 if __name__ == "__main__":
-    model_name = str(sys.argv[1]) if len(sys.argv) > 1 else 'LogisticRegression'
-    train(model_name=model_name)
+    train()
