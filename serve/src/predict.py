@@ -65,7 +65,6 @@ class WineModel:
         }
         data = input.dict()
         data['reg_prediction'] = prediction
-        data['quality'] = 1
         logger.info(data)
         send_data_to_evidently(data)
         logger.info(f"Prediction:{json.dumps(results)}")
