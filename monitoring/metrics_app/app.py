@@ -28,9 +28,6 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from evidently.model_monitoring import DataDriftMonitor
 from evidently.model_monitoring import ModelMonitoring
 from evidently.model_monitoring import NumTargetDriftMonitor
-from evidently.model_monitoring import RegressionPerformanceMonitor
-from evidently.model_monitoring import ClassificationPerformanceMonitor
-from evidently.model_monitoring import CatTargetDriftMonitor
 from evidently.pipeline.column_mapping import ColumnMapping
 from evidently.runner.loader import DataLoader
 from evidently.runner.loader import DataOptions
