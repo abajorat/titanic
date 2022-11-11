@@ -1,8 +1,8 @@
 # Practica
 
-## Tareas
+## Instrucciones
 
-Cada grupo recibe un dataset de referencia que se uso para entrenar un modelo, y dos datasets con datos de producción.
+Cada grupo tendrá asignado un folder con datasets (ver abajo). En el folder encontrarán 3 archivos .csv, uno que se usó para entrenar un modelo y otros dos que son datos de producción.
 Uno de los dos datasets de producción tiene Drift.
 
 1. Descargar datos asignados
