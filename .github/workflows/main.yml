@@ -2,7 +2,7 @@ name: Deployment
 
 on:
   push:
-    branches: [monitoring]
+    branches: [main]
 
 jobs:
   # flake8:
