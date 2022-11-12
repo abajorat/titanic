@@ -23,4 +23,4 @@ dataset:
 service:
   calculation_period_sec: 2
   datasets_path: datasets
-  window_size: 10
+  window_size: 100
